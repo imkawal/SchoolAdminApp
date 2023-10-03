@@ -12,7 +12,7 @@ class WeeklyTestController {
       final response = await http.post(
         Uri.parse('$apiUrl'),
         headers: {'Content-Type': 'application/json', 'Authorization': token},
-        body: jsonEncode({'operation': 'ShowWeeklyTest'}),
+        body: jsonEncode({'operation': 'ShowWeeklyTest', 'status': 'Unpublished'}),
       );
 
       if (response.statusCode == 200) {
@@ -35,6 +35,28 @@ class WeeklyTestController {
       Uri.parse('$apiUrl'),
       headers: {'Content-Type': 'application/json', 'Authorization': token},
       body: jsonEncode({'operation': 'ShowWeeklyTest', 'status': 'Published'}),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      if (responseData.containsKey('data')) {
+        final List<dynamic> data = responseData['data'];
+        return data.map((item) {
+          return WeeklyTest.fromJson(item);
+        }).toList();
+      } else {
+        throw Exception('Data not found in response');
+      }
+    } else {
+      throw Exception('Request failed with status: ${response.statusCode}');
+    }
+  }
+
+  Future<List<WeeklyTest>> fetchSaveStudentData({required String token}) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl'),
+      headers: {'Content-Type': 'application/json', 'Authorization': token},
+      body: jsonEncode({'operation': 'ShowWeeklyTest', 'status': 'Save'}),
     );
 
     if (response.statusCode == 200) {

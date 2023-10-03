@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/StudentAttd_controller.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:fk_toggle/fk_toggle.dart';
+import 'graph.dart';
 
 class StudentAttd extends StatefulWidget {
   const StudentAttd({Key? key}) : super(key: key);
@@ -17,6 +18,9 @@ class _StudentAttd extends State<StudentAttd> {
   final obj = StudentAttdController();
   String token = '';
   dynamic data;
+  double StudentAB = 0;
+  double Studenttot = 0;
+  double StudentP = 0;
 
   @override
   void initState() {
@@ -26,12 +30,25 @@ class _StudentAttd extends State<StudentAttd> {
     });
   }
 
+  List<ChartDataPoint> StudentGraph = [];
   Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    double Studenttot = prefs.getDouble('Studenttot') ?? 0.0;
+    double StudentP = prefs.getDouble('StudentP') ?? 0.0;
+    double StudentAB = prefs.getDouble('StudentAB') ?? 0.0;
+    String token = prefs.getString('token') ?? '';
+
     setState(() {
-      token = prefs.getString('token') ?? '';
+      this.token = token;
     });
+
+    StudentGraph = [
+      ChartDataPoint('${Studenttot.toInt()}', Studenttot, Color(0xFF6495ED)),
+      ChartDataPoint('${StudentAB.toInt()}', StudentAB, Color(0xFFFF4433)),
+      ChartDataPoint('${StudentP.toInt()}', StudentP, Color(0xFFFDDA0D)),
+    ];
   }
+
 
   bool loader = true;
   final List<Map<String, dynamic>> tableData = [];
@@ -114,7 +131,7 @@ class _StudentAttd extends State<StudentAttd> {
 
       FkToggle(
           width: 120,
-          height: 35,
+          height: 30,
           labels: const ['Absent', 'Present'],
           selectedColor: Colors.orange,
           backgroundColor: Colors.white,
@@ -202,6 +219,59 @@ class _StudentAttd extends State<StudentAttd> {
                     height: gapHeight,
                     child: ListView(
                       children: [
+                        Container(
+                          child: PieChart(
+                            initialValue: 0.20,
+                            data: StudentGraph,
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(left: 20, right: 20),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFF6495ED),
+                                      borderRadius: BorderRadius.circular(15)
+                                  ),
+                                  child: Center(
+                                    child: Text("Leave",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  margin: EdgeInsets.only(left: 10, right:10),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFFF4433),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: Center(
+                                    child: Text("Absent",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFFDDA0D),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: Center(
+                                    child: Text("Present",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(

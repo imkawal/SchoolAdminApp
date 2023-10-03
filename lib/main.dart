@@ -10,10 +10,12 @@ import 'StudentAttendance.dart';
 import 'staffattd.dart';
 import 'homework.dart';
 import 'profile.dart';
+import 'exam_result.dart';
+import 'fee_report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.black, // Set the status bar color here
   ));
   runApp(MyApp());
@@ -53,11 +55,13 @@ class _MyApp extends State<MyApp> {
         '/EnterOTP' : (context) => OtpEntryScreen(),
         '/ResetPass' : (context) => ResetPass(),
         '/home' : (context) => Home(),
-        '/weektest' : (context) => WeeklyTest(),
-        '/stdAttd' : (context) => StudentAttd(),
-        '/staffAttd' : (context) => StaffAttd(),
-        '/homework' : (context) => HomeWork(),
+        '/weektest' : (context) => const WeeklyTest(),
+        '/stdAttd' : (context) => const StudentAttd(),
+        '/staffAttd' : (context) => const StaffAttd(),
+        '/homework' : (context) => const HomeWork(),
         '/profile' : (context) => StudentProfile(),
+        '/exam' : (context) => const ExamReport(),
+        '/fee' : (context) => const FeeReport(),
       },
     );
   }

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/StaffAttd_controller.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:fk_toggle/fk_toggle.dart';
+import 'graph.dart';
 
 class StaffAttd extends StatefulWidget {
   const StaffAttd({Key? key}) : super(key: key);
@@ -26,11 +27,21 @@ class _StaffAttd extends State<StaffAttd> {
     });
   }
 
+  List<ChartDataPoint> StudentGraph = [];
   Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    double Studenttot = prefs.getDouble('Stafftot') ?? 0.0;
+    double StudentP = prefs.getDouble('StaffP') ?? 0.0;
+    double StudentAB = prefs.getDouble('StaffAB') ?? 0.0;
+
     setState(() {
       token = prefs.getString('token') ?? '';
     });
+    StudentGraph = [
+      ChartDataPoint('${Studenttot.toInt()}', Studenttot, Color(0xFF6495ED)),
+      ChartDataPoint('${StudentAB.toInt()}', StudentAB, Color(0xFFFF4433)),
+      ChartDataPoint('${StudentP.toInt()}', StudentP, Color(0xFFFDDA0D)),
+    ];
   }
 
   bool loader = true;
@@ -202,6 +213,59 @@ class _StaffAttd extends State<StaffAttd> {
                     height: gapHeight,
                     child: ListView(
                       children: [
+                        Container(
+                          child: PieChart(
+                            initialValue: 0.20,
+                            data: StudentGraph,
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(left: 20, right: 20),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFF6495ED),
+                                      borderRadius: BorderRadius.circular(15)
+                                  ),
+                                  child: Center(
+                                    child: Text("Leave",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  margin: EdgeInsets.only(left: 10, right:10),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFFF4433),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: Center(
+                                    child: Text("Absent",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFFDDA0D),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: Center(
+                                    child: Text("Present",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(

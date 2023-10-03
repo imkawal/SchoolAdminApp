@@ -7,6 +7,7 @@ import '../controller/Homework_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:fk_toggle/fk_toggle.dart';
+import 'graph.dart';
 
 class HomeWork extends StatefulWidget {
   const HomeWork({Key? key}) : super(key: key);
@@ -26,11 +27,19 @@ class _HomeWork extends State<HomeWork> {
     print('1');
   }
 
+  List<ChartDataPoint> HomeworkGraph = [];
   Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    double HMPub = prefs.getDouble('HMPub') ?? 0.0;
+    double HNUnpub = prefs.getDouble('HNUnpub') ?? 0.0;
     setState(() {
       token = prefs.getString('token') ?? '';
     });
+
+    HomeworkGraph = [
+      ChartDataPoint('${HMPub.toInt()}', HMPub, Color(0xFFFDDA0D)),
+      ChartDataPoint('${HNUnpub.toInt()}', HNUnpub, Color(0xFFFF4433)),
+    ];
   }
 
   List<Map<String, dynamic>> tableData = [];
@@ -209,6 +218,59 @@ class _HomeWork extends State<HomeWork> {
                     height: gapHeight,
                     child: ListView(
                       children: [
+                        Container(
+                          child: PieChart(
+                            initialValue: 0.20,
+                            data: HomeworkGraph,
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(left: 20, right: 20),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFF6495ED),
+                                      borderRadius: BorderRadius.circular(15)
+                                  ),
+                                  child: Center(
+                                    child: Text("Leave",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  margin: EdgeInsets.only(left: 10, right:10),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFFF4433),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: Center(
+                                    child: Text("Absent",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFFDDA0D),
+                                      borderRadius: BorderRadius.circular(10)
+                                  ),
+                                  child: Center(
+                                    child: Text("Present",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(

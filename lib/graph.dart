@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 
-
 class _PageGraph extends StatefulWidget {
   late List<_ChartData> data;
   // ignore: prefer_const_constructors_in_immutables

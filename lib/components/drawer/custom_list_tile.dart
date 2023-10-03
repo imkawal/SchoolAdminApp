@@ -30,6 +30,10 @@ class CustomListTile extends StatelessWidget {
             Navigator.pushNamed(context, '/staffAttd');
          }else if(title == 'HomeWork'){
             Navigator.pushNamed(context, '/homework');
+         }else if(title == 'Exam Result'){
+            Navigator.pushNamed(context, '/exam');
+         }else if(title == 'Fee Report'){
+           Navigator.pushNamed(context, '/fee');
          }
       },
       child: AnimatedContainer(

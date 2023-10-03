@@ -31,9 +31,14 @@ class _Home extends State<Home> {
   double HMTotal = 0;
   double HMPub = 0;
   double HNUnpub = 0;
+
   double WKTotal = 0;
   double WKPub = 0;
   double WKunPub = 0;
+
+  double SavedExam = 0;
+  double LockedExam = 0;
+  double PubExam = 0;
 
   String Institution = '';
   String Email = '';
@@ -69,6 +74,7 @@ class _Home extends State<Home> {
   List<ChartDataPoint> HomeworkGraph = [];
   List<ChartDataPoint> WeekGraph = [];
   List<ChartDataPoint> FeeGraph = [];
+  List<ChartDataPoint> ExamGraph = [];
   bool loader = true;
 
   void _ShowLoggedOutBox(context) {
@@ -105,8 +111,8 @@ class _Home extends State<Home> {
 
     final studentData = await obj.geHomeData(token: token);
     Map<String, dynamic> parsedData = json.decode(studentData);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     if(parsedData['message'] != 'Data Fetched.'){
-          SharedPreferences prefs = await SharedPreferences.getInstance();
           Loader.hide();
           prefs.remove('token');
           _ShowLoggedOutBox(context);
@@ -116,31 +122,59 @@ class _Home extends State<Home> {
       Map<String, dynamic> StdAttendance = parsedData['StudentAttendance'];
       Map<String, dynamic> Homework = parsedData['Homework'];
       Map<String, dynamic> FeeData = parsedData['FeeData'];
+      Map<String, dynamic> Exam = parsedData['Exam'];
 
       Loader.hide();
       setState(() {
         Studenttot = StdAttendance['Total'].toDouble();
+        prefs.setDouble('Studenttot', Studenttot);
         StudentAB = StdAttendance['Absent'].toDouble();
+        prefs.setDouble('StudentAB', StudentAB);
         StudentP = StdAttendance['Present'].toDouble();
+        prefs.setDouble('StudentP', StudentP);
 
         Stafftot = StaffAttendance['Total'].toDouble();
+        prefs.setDouble('Stafftot', Stafftot);
         StaffAB = StaffAttendance['Absent'].toDouble();
+        prefs.setDouble('StaffAB', StaffAB);
         StaffP = StaffAttendance['Present'].toDouble();
+        prefs.setDouble('StaffP', StaffP);
+
+        SavedExam = Exam['Save'].toDouble();
+        prefs.setDouble('SavedExam', SavedExam);
+        LockedExam = Exam['Locked'].toDouble();
+        prefs.setDouble('LockedExam', LockedExam);
+        PubExam = Exam['Published'].toDouble();
+        prefs.setDouble('PubExam', PubExam);
+
 
         HMTotal = Homework['Total'].toDouble();
         HMPub = Homework['Published'].toDouble();
+        prefs.setDouble('HMPub', HMPub);
         HNUnpub = Homework['UnPublished'].toDouble();
+        prefs.setDouble('HNUnpub', HNUnpub);
 
-        WKTotal = WeeklyTest['Total'].toDouble();
+        WKTotal = WeeklyTest['Save'].toDouble();
+        prefs.setDouble('WKTotal', WKTotal);
         WKPub = WeeklyTest['Published'].toDouble();
+        prefs.setDouble('WKPub', WKPub);
         WKunPub = WeeklyTest['UnPublished'].toDouble();
+        prefs.setDouble('WKunPub', WKunPub);
 
         FeePaid = FeeData['Paid'].toDouble();
+        prefs.setDouble('FeePaid', FeePaid);
         FeePending = FeeData['Pending'].toDouble();
+        prefs.setDouble('FeePending', FeePending);
 
         FeeGraph = [
           ChartDataPoint('${FeePaid.toInt()}', FeePaid, Color(0xFF6495ED)),
           ChartDataPoint('${FeePending.toInt()}', FeePending, Color(0xFFFF4433)),
+        ];
+
+        ExamGraph = [
+          ChartDataPoint('${LockedExam.toInt()}', LockedExam, Color(0xFF6495ED)),
+          ChartDataPoint('${SavedExam.toInt()}', SavedExam, Color(0xFFFF4433)),
+          ChartDataPoint('${PubExam.toInt()}', PubExam, Color(0xFFFDDA0D)),
         ];
 
         StudentGraph = [
@@ -163,6 +197,7 @@ class _Home extends State<Home> {
         WeekGraph = [
           ChartDataPoint('${WKPub.toInt()}', WKPub, Color(0xFFFDDA0D)),
           ChartDataPoint('${WKunPub.toInt()}', WKunPub, Color(0xFFFF4433)),
+          ChartDataPoint('${WKTotal.toInt()}', WKTotal, Color(0xFF6495ED)),
         ];
         loader = false;
       });
@@ -606,10 +641,24 @@ class _Home extends State<Home> {
                                       data: WeekGraph,
                                     ),
                                   ),
-                                  Container(
-                                    margin: EdgeInsets.only(left: 40, right: 40, bottom: 8),
+                                  Container( 
+                                    margin: EdgeInsets.only(left: 20, right: 10, bottom: 8),
                                     child: Row(
                                       children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            margin: EdgeInsets.only(left: 3, right:3),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xFF6495ED),
+                                                borderRadius: BorderRadius.circular(10)
+                                            ),
+                                            child: Center(
+                                              child: Text("Save",style: TextStyle(color: Colors.white, fontSize: 12),),
+                                            ),
+                                          ),
+                                        ),
                                         Expanded(
                                           flex: 1,
                                           child: Container(
@@ -634,6 +683,96 @@ class _Home extends State<Home> {
                                             ),
                                             child: Center(
                                               child: Text("Published",style: TextStyle(color: Colors.white, fontSize: 12),),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                25.0), // Adjust the radius as needed
+                          ),
+                          elevation: 3.0,
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(top: 20),
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "Exam Report (Latest Exam)",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SavedExam+PubExam+LockedExam == 0 ?
+                              Container(
+                                height: emptyboxHeights ,
+                                child: Center(
+                                  child: Text("No Data Found", style: TextStyle(fontWeight: FontWeight.bold,),),
+                                ),
+                              )
+                                  :
+                              Column(
+                                children: [
+                                  Container(
+                                    child: PieChart(
+                                      initialValue: 0.25,
+                                      data: ExamGraph,
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 10, right: 10, bottom: 8),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xFF6495ED),
+                                                borderRadius: BorderRadius.circular(15)
+                                            ),
+                                            child: Center(
+                                              child: Text("Locked",style: TextStyle(color: Colors.white, fontSize: 12),),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            margin: EdgeInsets.only(left: 3, right:3),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xFFFF4433),
+                                                borderRadius: BorderRadius.circular(10)
+                                            ),
+                                            child: Center(
+                                              child: Text("Saved",style: TextStyle(color: Colors.white, fontSize: 12),),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xFFFDDA0D),
+                                                borderRadius: BorderRadius.circular(10)
+                                            ),
+                                            child: Center(
+                                              child: Text("Published",style: TextStyle(color: Colors.white,  fontSize: 12),),
                                             ),
                                           ),
                                         ),

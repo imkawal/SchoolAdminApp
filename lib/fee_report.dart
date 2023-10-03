@@ -3,20 +3,20 @@ import 'bargrp.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '/components/drawer/custom_drawer.dart';
 import 'footer.dart';
-import '../controller/WeeklyTest_controller.dart';
+import '../controller/fee_report_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:fk_toggle/fk_toggle.dart';
 import 'graph.dart';
 
-class WeeklyTest extends StatefulWidget {
-  const WeeklyTest({Key? key}) : super(key: key);
-  _Weeklytest createState() => _Weeklytest();
+class FeeReport extends StatefulWidget {
+  const FeeReport({Key? key}) : super(key: key);
+  _FeeReport createState() => _FeeReport();
 }
 
-class _Weeklytest extends State<WeeklyTest> {
-  final obj = WeeklyTestController();
-  String selectedval = 'UnPublished';
+class _FeeReport extends State<FeeReport> {
+  final obj = ExamController();
+  String selectedval = 'Unpublished';
   String token = '';
   @override
   void initState() {
@@ -24,31 +24,30 @@ class _Weeklytest extends State<WeeklyTest> {
     getToken().then((value){
       fetchAbsentStudentData();
     });
+    print('1');
   }
 
-  List<ChartDataPoint> WeekGraph = [];
+  List<ChartDataPoint> FeeGraph = [];
   Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    double WKTotal = prefs.getDouble('WKTotal') ?? 0.0;
-    double WKPub = prefs.getDouble('WKPub') ?? 0.0;
-    double WKunPub = prefs.getDouble('WKunPub') ?? 0.0;
+    double FeePaid = prefs.getDouble('FeePaid') ?? 0.0;
+    double FeePending = prefs.getDouble('FeePending') ?? 0.0;
     setState(() {
       token = prefs.getString('token') ?? '';
     });
-
-    WeekGraph = [
-      ChartDataPoint('${WKPub.toInt()}', WKPub, Color(0xFFFDDA0D)),
-      ChartDataPoint('${WKunPub.toInt()}', WKunPub, Color(0xFFFF4433)),
-      ChartDataPoint('${WKTotal.toInt()}', WKTotal, Color(0xFF6495ED)),
+    FeeGraph = [
+      ChartDataPoint('${FeePaid.toInt()}', FeePaid, Color(0xFFFDDA0D)),
+      ChartDataPoint('${FeePending.toInt()}', FeePending, Color(0xFFFF4433)),
     ];
   }
 
-  final List<Map<String, dynamic>> tableData = [];
+  List<Map<String, dynamic>> tableData = [];
   bool loader = true;
   void fetchAbsentStudentData() async {
     setState(() {
       tableData.clear();
     });
+    final obja = ExamController();
     Loader.show(context,
         isAppbarOverlay: true,
         overlayFromTop: 100,
@@ -56,16 +55,17 @@ class _Weeklytest extends State<WeeklyTest> {
         themeData: Theme.of(context)
             .copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.black38)),
         overlayColor: Color(0x99E8EAF6));
-    final studentData = await obj.getWeeklyTest(token: token);
+    final studentData = await obja.getExamData(token: token, type: 'Save');
+    print(studentData);
     var arr = [];
     int j = 1;
     for (var student in studentData) {
       final studentMap = {
         'no' : j,
-        'Name': student.name,
-        'Class': student.classSection,
-        'Subject':  student.Subject,
-        'Phone': student.PhoneNo
+        'ClassSection': student.ClassSection,
+        'PendingAmt': student.PendingAmt,
+        'PendingStd' : student.PendingStd,
+        'TotalStd' : student.TotalStd
       };
       j=j+1;
       tableData.add(studentMap);
@@ -76,102 +76,15 @@ class _Weeklytest extends State<WeeklyTest> {
     });
   }
 
-  void fetchPubStudentData() async {
-    setState(() {
-      tableData.clear();
-    });
-    Loader.show(context,
-        isAppbarOverlay: true,
-        overlayFromTop: 100,
-        progressIndicator: CircularProgressIndicator(),
-        themeData: Theme.of(context)
-            .copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.black38)),
-        overlayColor: Color(0x99E8EAF6));
-    final studentData = await obj.fetchPubStudentData(token: token);
-    var arr = [];
-    int j = 1;
-    for (var student in studentData) {
-      final studentMap = {
-        'no' : j,
-        'Name': student.name,
-        'Class': student.classSection,
-        'Subject':  student.Subject,
-        'Phone': student.PhoneNo
-      };
-      j=j+1;
-      tableData.add(studentMap);
-    }
-    Loader.hide();
-    setState(() {
-      loader = false;
-    });
-  }
-
-  void fetchSaveStudentData() async {
-    setState(() {
-      tableData.clear();
-    });
-    Loader.show(context,
-        isAppbarOverlay: true,
-        overlayFromTop: 100,
-        progressIndicator: CircularProgressIndicator(),
-        themeData: Theme.of(context)
-            .copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(
-            secondary: Colors.black38)),
-        overlayColor: Color(0x99E8EAF6));
-    final studentData = await obj.fetchSaveStudentData(token: token);
-    var arr = [];
-    int j = 1;
-    for (var student in studentData) {
-      final studentMap = {
-        'no': j,
-        'Name': student.name,
-        'Class': student.classSection,
-        'Subject': student.Subject,
-        'Phone': student.PhoneNo
-      };
-      j = j + 1;
-      tableData.add(studentMap);
-    }
-    Loader.hide();
-    setState(() {
-      loader = false;
-    });
-  }
-
-    @override
+  @override
   Widget build(BuildContext context) {
-    final OnSelected selected = ((index, instance) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Showing ${instance.labels[index]}')));
 
-      if(instance.labels[index] == 'Published') {
-        fetchPubStudentData();
-      }else if(instance.labels[index] == 'Save'){
-        fetchSaveStudentData();
-      }else{
-        fetchAbsentStudentData();
-      }
-      print('0');
-    });
-
-    final toggles = [
-
-      FkToggle(
-          width: 120,
-          height: 35,
-          labels: const ['Unpublished', 'Published', 'Save'],
-          selectedColor: Colors.orange,
-          backgroundColor: Colors.white,
-          onSelected: selected),
-    ];
     double screenHeight = MediaQuery.of(context).size.height;
-    double gapHeight = screenHeight * 0.65;
+    double gapHeight = screenHeight * 0.73;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Weekly Test",
+          "Fee Report",
           style: TextStyle(
             color: Color(0xFFff753a),
           ),
@@ -222,24 +135,12 @@ class _Weeklytest extends State<WeeklyTest> {
                 height: 20,
               ),
               Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: toggles
-                      .map((e) => Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: e,
-                  ))
-                      .toList(),
-                ),
-              ),
-              Center(
                 child: Card(
                   elevation: 5.0, // Add elevation for a raised effect
                   margin: EdgeInsets.all(10.0), // Add margin for spacing
                   shape: RoundedRectangleBorder(
                     borderRadius:
-                        BorderRadius.circular(10.0), // Add rounded corners
+                    BorderRadius.circular(10.0), // Add rounded corners
                   ),
                   child: Container(
                     height: gapHeight,
@@ -248,7 +149,7 @@ class _Weeklytest extends State<WeeklyTest> {
                         Container(
                           child: PieChart(
                             initialValue: 0.20,
-                            data: WeekGraph,
+                            data: FeeGraph,
                           ),
                         ),
                         Container(
@@ -259,26 +160,13 @@ class _Weeklytest extends State<WeeklyTest> {
                                 flex: 1,
                                 child: Container(
                                   padding: EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                      color: Color(0xFF6495ED),
-                                      borderRadius: BorderRadius.circular(15)
-                                  ),
-                                  child: Center(
-                                    child: Text("Save",style: TextStyle(color: Colors.white, fontSize: 12,),),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Container(
-                                  padding: EdgeInsets.all(2),
                                   margin: EdgeInsets.only(left: 10, right:10),
                                   decoration: BoxDecoration(
                                       color: Color(0xFFFF4433),
                                       borderRadius: BorderRadius.circular(10)
                                   ),
                                   child: Center(
-                                    child: Text("Unpublished",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                    child: Text("Pending",style: TextStyle(color: Colors.white, fontSize: 12,),),
                                   ),
                                 ),
                               ),
@@ -291,7 +179,7 @@ class _Weeklytest extends State<WeeklyTest> {
                                       borderRadius: BorderRadius.circular(10)
                                   ),
                                   child: Center(
-                                    child: Text("Published",style: TextStyle(color: Colors.white, fontSize: 12,),),
+                                    child: Text("Paid",style: TextStyle(color: Colors.white, fontSize: 12,),),
                                   ),
                                 ),
                               ),
@@ -303,27 +191,27 @@ class _Weeklytest extends State<WeeklyTest> {
                           child: Column(
                             children: [
                               DataTable(
-                                columnSpacing: 50.0,
+                                columnSpacing: 15.0,
                                 horizontalMargin:
-                                    0.0, // Remove horizontal margin
+                                1.0, // Remove horizontal margin
                                 headingRowHeight:
-                                    30.0, // Adjust heading row height
+                                30.0, // Adjust heading row height
                                 dataRowHeight: 60.0,
                                 columns: <DataColumn>[
                                   DataColumn(
                                     label: Container(
-                                        child: Text(
-                                          'S#',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16.0,
-                                          ),
+                                      child: Text(
+                                        'Class',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.0,
                                         ),
+                                      ),
                                     ),
                                   ),
                                   DataColumn(
                                     label: Text(
-                                      'Class',
+                                      'Pend. Amt.',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16.0,
@@ -332,7 +220,16 @@ class _Weeklytest extends State<WeeklyTest> {
                                   ),
                                   DataColumn(
                                     label: Text(
-                                      'Incharge',
+                                      'Pend. Std.',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Tot. Std.',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16.0,
@@ -343,10 +240,11 @@ class _Weeklytest extends State<WeeklyTest> {
                                 rows: tableData.map((data) {
                                   return DataRow(
                                     cells: <DataCell>[
-                                      DataCell(Text(data['no'].toString())),
-                                      DataCell(Text('${data['Class']} \n${data['Subject']}')),
+                                      DataCell(Text(data['ClassSection'].toString())),
+                                      DataCell(Text('${data['PendingAmt']}')),
+                                      DataCell(Text('      ${data['PendingStd']}')),
                                       DataCell(
-                                          Text('${data['Name']} \n${data['Phone']}')),
+                                          Text('     ${data['TotalStd']}')),
                                     ],
                                   );
                                 }).toList(),
