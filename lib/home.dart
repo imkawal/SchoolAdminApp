@@ -47,6 +47,8 @@ class _Home extends State<Home> {
   double FeePending = 0;
   double FeePaid = 0;
 
+  String FeePeriod  = '';
+
   var Date = DateFormat('dd/MM/yyyy').format(DateTime.now());
   var fromDate = DateFormat('yyyy').format(DateTime.now());
   @override
@@ -73,6 +75,7 @@ class _Home extends State<Home> {
   List<ChartDataPoint> StaffGraphs = [];
   List<ChartDataPoint> HomeworkGraph = [];
   List<ChartDataPoint> WeekGraph = [];
+  List<_ChartData> FeeBarGraph = [];
   List<ChartDataPoint> FeeGraph = [];
   List<ChartDataPoint> ExamGraph = [];
   bool loader = true;
@@ -123,7 +126,17 @@ class _Home extends State<Home> {
       Map<String, dynamic> Homework = parsedData['Homework'];
       Map<String, dynamic> FeeData = parsedData['FeeData'];
       Map<String, dynamic> Exam = parsedData['Exam'];
-
+      List classWiseFee = parsedData['ClassWiseFee'];
+      for (var feeItem in classWiseFee) {
+        String classSection = feeItem['ClassSection'];
+        double pendingAmount = double.parse(feeItem['PendingAmount']);
+        double netPayableAmount = double.parse(feeItem['NetPayableAmount']);
+        String FeePeriods = feeItem['FeePeriod'];
+        setState(() {
+             FeePeriod = FeePeriods;
+        });
+        FeeBarGraph.add(_ChartData(classSection, pendingAmount, netPayableAmount));
+      }
       Loader.hide();
       setState(() {
         Studenttot = StdAttendance['Total'].toDouble();
@@ -199,6 +212,7 @@ class _Home extends State<Home> {
           ChartDataPoint('${WKunPub.toInt()}', WKunPub, Color(0xFFFF4433)),
           ChartDataPoint('${WKTotal.toInt()}', WKTotal, Color(0xFF6495ED)),
         ];
+
         loader = false;
       });
     }
@@ -270,7 +284,7 @@ class _Home extends State<Home> {
                   children: [
                     Expanded(
                       flex: 1,
-                      child: Container(
+                      child: Container( 
                         padding: EdgeInsets.all(
                             3.0), // Adjust the padding for the border
                         decoration: BoxDecoration(
@@ -655,7 +669,7 @@ class _Home extends State<Home> {
                                                 borderRadius: BorderRadius.circular(10)
                                             ),
                                             child: Center(
-                                              child: Text("Save",style: TextStyle(color: Colors.white, fontSize: 12),),
+                                              child: Text("Saved",style: TextStyle(color: Colors.white, fontSize: 12),),
                                             ),
                                           ),
                                         ),
@@ -794,6 +808,72 @@ class _Home extends State<Home> {
                           child: Column(
                             children: [
                               Container(
+                                margin: EdgeInsets.only(top: 20),
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "Class Wise Fee of ${FeePeriod}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                  Container(
+                                    child: _PageGraph(data: FeeBarGraph)
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 10, right: 10, bottom: 8),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            margin: EdgeInsets.only(left: 3, right:3),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xFFff753a),
+                                                borderRadius: BorderRadius.circular(10)
+                                            ),
+                                            child: Center(
+                                              child: Text("Pending",style: TextStyle(color: Colors.white, fontSize: 12),),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Container(
+                                            padding: EdgeInsets.all(2),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xFFFDDA0D),
+                                                borderRadius: BorderRadius.circular(10)
+                                            ),
+                                            child: Center(
+                                              child: Text("Paid",style: TextStyle(color: Colors.white,  fontSize: 12),),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                25.0), // Adjust the radius as needed
+                          ),
+                          elevation: 3.0,
+                          child: Column(
+                            children: [
+                              Container(
                                 margin: EdgeInsets.only(top: 20, bottom: 12),
                                 child: Align(
                                   alignment: Alignment.center,
@@ -873,4 +953,75 @@ class _Home extends State<Home> {
       bottomNavigationBar: Footer(),
     );
   }
+}
+
+
+class _PageGraph extends StatefulWidget {
+  late List<_ChartData> data;
+
+  _PageGraph({Key? key, required this.data}) : super(key: key);
+
+  @override
+  PageGraph createState() => PageGraph();
+}
+
+class PageGraph extends State<_PageGraph> {
+  late TooltipBehavior _tooltip;
+
+  @override
+  void initState() {
+    _tooltip = TooltipBehavior(enable: true);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate the maximum value for the Y-axis dynamically
+    double maxPaid = widget.data.map((data) => data.y1).reduce((a, b) => a > b ? a : b);
+    double maxPending = widget.data.map((data) => data.y2).reduce((a, b) => a > b ? a : b);
+    double maxYValue = maxPaid > maxPending ? maxPaid : maxPending;
+
+    double screenHeight = MediaQuery.of(context).size.height;
+    double gapHeight = screenHeight * 0.24;
+
+    return Container(
+      height: gapHeight,
+      child: SfCartesianChart(
+        primaryXAxis: CategoryAxis(),
+        primaryYAxis: NumericAxis(
+          minimum: 0,
+          maximum: maxYValue, // Set the maximum value dynamically
+          interval: maxYValue / 10, // Set the interval dynamically
+          numberFormat: NumberFormat.compact(), // Use compact number format
+        ),
+        tooltipBehavior: _tooltip,
+        series: <ChartSeries<_ChartData, String>>[
+          ColumnSeries<_ChartData, String>(
+            dataSource: widget.data,
+            xValueMapper: (_ChartData data, _) => data.x,
+            yValueMapper: (_ChartData data, _) => data.y1,
+            name: 'Pending', // Name for the first bar
+            color: Color(0xFFff753a),
+            width: 0.3, // Adjust the width of the bars to create space
+          ),
+          ColumnSeries<_ChartData, String>(
+            dataSource: widget.data,
+            xValueMapper: (_ChartData data, _) => data.x,
+            yValueMapper: (_ChartData data, _) => data.y2,
+            name: 'Paid', // Name for the second bar
+            color: Color(0xFFFDDA0D),
+            width: 0.3, // Adjust the width of the bars to create space
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChartData {
+  _ChartData(this.x, this.y1, this.y2);
+
+  final String x;
+  final double y1;
+  final double y2;
 }

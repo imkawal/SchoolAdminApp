@@ -327,7 +327,7 @@ class _ExamReport extends State<ExamReport> {
                                   DataColumn(
                                     label: Container(
                                       child: Text(
-                                        'S#',
+                                        'Exam',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16.0,
@@ -366,7 +366,7 @@ class _ExamReport extends State<ExamReport> {
                                 rows: tableData.map((data) {
                                   return DataRow(
                                     cells: <DataCell>[
-                                      DataCell(Text(data['no'].toString())),
+                                      DataCell(Text(data['Exam'].toString())),
                                       DataCell(Text('${data['Class']}')),
                                       DataCell(Text('${data['Subject']}')),
                                       DataCell(

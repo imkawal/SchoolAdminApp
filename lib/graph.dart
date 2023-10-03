@@ -8,53 +8,6 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
-
-class _PageGraph extends StatefulWidget {
-  late List<_ChartData> data;
-  // ignore: prefer_const_constructors_in_immutables
-  _PageGraph({Key? key, required this.data}) : super(key: key);
-
-  @override
-  PageGraph createState() => PageGraph();
-}
-
-class PageGraph extends State<_PageGraph> {
-  late TooltipBehavior _tooltip;
-
-  @override
-  void initState() {
-    _tooltip = TooltipBehavior(enable: true);
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double gapHeight = screenHeight * 0.24;
-    return Container(
-        height: gapHeight,
-        child: SfCartesianChart(
-            primaryXAxis: CategoryAxis(),
-            primaryYAxis: NumericAxis(minimum: 0, maximum: 40, interval: 10),
-            tooltipBehavior: _tooltip,
-            series: <ChartSeries<_ChartData, String>>[
-              ColumnSeries<_ChartData, String>(
-                  dataSource: widget.data,
-                  xValueMapper: (_ChartData data, _) => data.x,
-                  yValueMapper: (_ChartData data, _) => data.y,
-                  name: 'Gold',
-                  color: Color(0xFFff753a))
-            ]));
-  }
-}
-
-class _ChartData {
-  _ChartData(this.x, this.y);
-
-  final String x;
-  final double y;
-}
-
 class PieChart extends StatefulWidget {
   final double initialValue;
   late List<ChartDataPoint> data;
